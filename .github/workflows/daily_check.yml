@@ -1,0 +1,36 @@
+name: Daily Access Expiry Check
+
+on:
+  schedule:
+    # දිනපතා ක්‍රියාත්මක වීමට (Every day at 00:00 UTC)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # ඕනෑම වෙලාවක Manual Run කිරීමට
+
+jobs:
+  check-access:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run access control script
+        env:
+          GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          GITHUB_ORG: "bitbucket-management-system"
+          GITHUB_TEAM_SLUG: "github-management-team"
+        run: |
+          python access_control.py
