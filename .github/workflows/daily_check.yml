@@ -2,9 +2,9 @@ name: Daily Access Expiry Check
 
 on:
   schedule:
-    # දිනපතා ක්‍රියාත්මක වීමට (Every day at 00:00 UTC)
+    
     - cron: '0 0 * * *'
-  workflow_dispatch: # ඕනෑම වෙලාවක Manual Run කිරීමට
+  workflow_dispatch: 
 
 jobs:
   check-access:
