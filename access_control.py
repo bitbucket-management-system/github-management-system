@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import requests
 
-# Load Environment Variables
+
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 GITHUB_ORG = os.environ.get("GITHUB_ORG", "bitbucket-management-system")
 GITHUB_TEAM_SLUG = os.environ.get(
@@ -16,7 +16,7 @@ GMAIL_USER = os.environ.get("GMAIL_USER")
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
 
-# Date Override for testing
+
 TODAY_STR = os.environ.get("TODAY_OVERRIDE")
 TODAY = (
     datetime.strptime(TODAY_STR, "%Y-%m-%d").date()
