@@ -25,12 +25,5 @@
       "expires_on": "2027-05-16",
       "warning_days": 7
     },
-    {
-      "github_username": "gihan200212",
-      "access_type": "temporary",
-      "added_on": "2026-11-17",
-      "expires_on": "2026-11-23",
-      "warning_days": 7
-    }
   ]
 }
