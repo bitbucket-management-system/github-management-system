@@ -75,7 +75,7 @@ def get_github_team_members():
         print(
             f"❌ Failed to fetch team members: {response.status_code} - {response.text}"
         )
-        return []
+        return None  # Return None on API failure so we don't accidentally wipe the JSON
 
 
 def remove_github_team_member(username):
@@ -100,12 +100,17 @@ def remove_github_team_member(username):
 
 
 def process_access_registry():
-    """Auto-enrolls new team members for 6 months, sends warnings, and removes expired users."""
+    """Auto-enrolls new members, syncs manual removals, sends warnings, and removes expired users."""
     if not os.path.exists("access_registry.json"):
         data = {"members": []}
     else:
         with open("access_registry.json", "r") as file:
             data = json.load(file)
+
+    current_team_members = get_github_team_members()
+    if current_team_members is None:
+        print("⚠️ Stopping sync because GitHub team members could not be fetched.")
+        return
 
     registry_updated = False
     registered_usernames = {
@@ -113,7 +118,6 @@ def process_access_registry():
     }
 
     # 1. Auto-detect newly added GitHub team members and grant 6-month (180-day) access
-    current_team_members = get_github_team_members()
     for username in current_team_members:
         if username not in registered_usernames:
             expiry_date = (TODAY + timedelta(days=DEFAULT_DURATION_DAYS)).strftime(
@@ -133,7 +137,7 @@ def process_access_registry():
                 f"🆕 New member detected: {username} | Auto-assigned 6-month access until {expiry_date}"
             )
 
-    # 2. Check existing members for warning or expiry removal
+    # 2. Check existing members for manual removal sync, warning, or expiry removal
     remaining_members = []
     for member in data.get("members", []):
         if member.get("access_type") != "temporary":
@@ -141,11 +145,19 @@ def process_access_registry():
             continue
 
         username = member["github_username"]
+
+        # Sync manual removal: if user was manually removed from the GitHub team, drop from JSON
+        if username not in current_team_members:
+            print(
+                f"🧹 User {username} is no longer in team {GITHUB_TEAM_SLUG}. Removing from access_registry.json..."
+            )
+            registry_updated = True
+            continue
+
         expires_on = datetime.strptime(
             member["expires_on"], "%Y-%m-%d"
         ).date()
         warning_days = member.get("warning_days", 7)
-
         days_remaining = (expires_on - TODAY).days
 
         print(
@@ -159,7 +171,6 @@ def process_access_registry():
             if removed:
                 registry_updated = True
             else:
-                # Keep in registry to retry on next run if API removal failed
                 remaining_members.append(member)
 
         # Check for warning period
